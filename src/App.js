@@ -35,7 +35,7 @@ const ACTransit = () => {
 
   const routeColors = {
     "6": "bg-[#006db8]",
-    "18:": "bg-[#8d6539]",
+    "18": "bg-[#8d6539]",
     "800": "bg-[#b8cf2e]",
   }
 
