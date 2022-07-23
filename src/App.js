@@ -98,6 +98,47 @@ const BART = () => {
   ))
 }
 
+const Muni = ({stops, routes}) => {
+  const [data, setData] = useState([])
+
+  const fetchData = async () => {
+    const aggregated = await stops.reduce(async (acc, stop) => {
+      const res = await axios.get(`https://webservices.umoiq.com/api/pub/v1/agencies/sf-muni/stopcodes/${stop}/predictions?key=0be8ebd0284ce712a63f29dcaf7798c4`)
+      const filteredRoutes = res.data.filter((route) => route.values.length > 0 && routes.includes(route.route.id))
+      return [...await acc, ...filteredRoutes]
+    }, [])
+
+    setData(aggregated)
+    console.log(aggregated)
+  }
+
+  useEffect(() => {
+    const id = setInterval(fetchData, 60_000)
+    fetchData()
+    return () => clearInterval(id)
+  }, [])
+
+  
+
+  return data.map((route, idx) => (
+    <Fragment key={idx}>
+      <div className="rounded-full w-40 h-24 text-center" style={{backgroundColor: `#${route.route.color}`}}>
+        <span className="text-[60px]" style={{color: `#${route.route.textColor}`}}>{route.route.id}</span>
+      </div>
+      <div className="col-span-6 space-x-4 pl-4">
+        <span>{route.route.title.slice(route.route.id.length + 1)} / {route.values[0].direction.destinationName.slice(route.values[0].direction.name.length + 4)}</span>
+        <span className="text-[16px]">at {route.stop.name}</span>
+      </div>
+      <span className="font-medium col-span-3 items-center">
+        {route.values.map((est, idx) => <span key={idx} className={est.minutes > 3 ? "text-green" : "text-red"}>{est.minutes}{idx === route.values.length - 1 ? "" : ", "}</span>)}
+        <span className="float-right text-[40px]">min</span>
+      </span>
+      
+    </Fragment>
+  ))
+}
+
+
 const App = () => {
   return (
     <div className="px-16 pt-8 text-[48px] grid grid-cols-10 gap-x-16 gap-y-16 items-center">
