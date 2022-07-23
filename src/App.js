@@ -2,14 +2,13 @@ import React, { Fragment, useState, useEffect } from "react";
 import axios from "axios";
 
 
-const ACTransit = () => {
+const ACTransit = ({stops}) => {
   const [data, setData] = useState([])
 
   const fetchData = async () => {
-    const stopIds = [55989, 52935, 55898]
     const token = "AB9BD2A779420B5ECAF4172AFCAC6C58"
 
-    const newData = await stopIds.reduce(async (acc, stopId) => {
+    const newData = await stops.reduce(async (acc, stopId) => {
       const data = await axios.get("https://api.actransit.org/transit/actrealtime/prediction", {params: {stpid: stopId, token: token}})
       return [...await acc, ...data.data['bustime-response'].prd || []]
     }, [])
@@ -58,20 +57,14 @@ const ACTransit = () => {
   ))
 }
 
-const BART = () => {
+const BART = ({stationCode, stationName, destinations}) => {
   const [data, setData] = useState([])
 
-  const routeColors = {
-    "Millbrae/SFO": "bg-[#ed1c24]",
-    "SF Airport": "bg-[#ffea00]",
-  }
-
   const fetchData = async () => {
-    const res = await axios.get("https://api.bart.gov/api/etd.aspx?cmd=etd&orig=MCAR&key=MW9S-E7SL-26DU-VV8V&json=y")
+    const res = await axios.get(`https://api.bart.gov/api/etd.aspx?cmd=etd&orig=${stationCode}&key=MW9S-E7SL-26DU-VV8V&json=y`)
 
     console.log(res.data.root.station[0].etd)
-
-    setData(res.data.root.station[0].etd.filter(etd => Object.keys(routeColors).includes(etd.destination)))
+    setData(res.data.root.station[0].etd.filter(etd => destinations.includes(etd.abbreviation)))
   }
 
   useEffect(() => {
@@ -81,13 +74,12 @@ const BART = () => {
   }, [])
 
   
-
   return data.map((route, idx) => (
     <Fragment key={idx}>
-      <div className={`rounded-full ${routeColors[route.destination]} w-40 h-24`}></div>
+      <div className={`rounded-full w-40 h-24`} style={{backgroundColor: route.estimate[0].hexcolor}}></div>
       <div className="col-span-6 space-x-4 pl-4">
         <span>{route.destination}</span>
-        <span className="text-[16px]">at MacArthur BART</span>
+        <span className="text-[16px]">at {stationName} BART</span>
       </div>
       <span className="font-medium col-span-3 items-center">
         {route.estimate.map((est, idx) => <span key={idx} className={est.minutes > 12 ? "text-green" : "text-red"}>{est.minutes}{idx === route.estimate.length - 1 ? "" : ", "}</span>)}
@@ -140,10 +132,37 @@ const Muni = ({stops, routes}) => {
 
 
 const App = () => {
+  const [selection, setSelection] = useState("home")
+  
+  const settings = {
+    "home": {
+      bart: {
+        stationCode: "MCAR",
+        stationName: "MacArthur",
+        destinations: ["SFIA", "DALY"]
+      },
+      ac: [55989, 52935, 55898],
+      muni: [],
+    },
+    "work": {
+      bart: {
+        stationCode: "16TH",
+        stationName: "16th Street/Mission",
+        destinations: ["ANTC", "RICH"]
+      },
+      muni: {
+        stops: [15551, 15552, 13293, 13291, 13292],
+        routes: ["14", "14R", "49"]
+      },
+      ac: []
+    }
+  }
+
   return (
-    <div className="px-16 pt-8 text-[48px] grid grid-cols-10 gap-x-16 gap-y-16 items-center">
-      <ACTransit />
-      <BART />
+    <div className="px-16 pt-8 text-[40px] grid grid-cols-10 gap-x-16 gap-y-16 items-center">
+      <BART {...settings[selection].bart} />
+      <ACTransit stops={settings[selection].ac} />
+      <Muni {...settings[selection].muni} />
     </div>
   );
 }
