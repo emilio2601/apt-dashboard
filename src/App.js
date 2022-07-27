@@ -84,15 +84,15 @@ const RouteBullet = ({ bulletColor, routeColor, routeName }) => {
 const RouteDescription = ({ destination, location }) => {
   return (
     <div className="col-span-6 space-x-4 pl-4">
-      <span className="text-[36px]">{destination}</span>
-      <span className="text-[14px]">at {location}</span>
+      <span className="text-[40px]">{destination}</span>
+      <span className="text-[16px]">at {location}</span>
     </div>
   )
 }
 
 const RouteETA = ({ etas, threshold }) => {
   return (
-    <span className="font-medium col-span-3 items-center text-[36px]">
+    <span className="font-medium col-span-3 items-center text-[40px]">
       {etas.map((est, idx) => <span key={idx} className={est > threshold ? "text-green" : "text-red"}>{est}{idx === etas.length - 1 ? "" : ", "}</span>)}
       <span className="float-right">min</span>
     </span>
