@@ -197,7 +197,8 @@ const App = () => {
       },
       ac: [55989, 52935, 55898],
       muni: [],
-      baywheels: "c3f56bed-65e3-425b-999e-82b3a4f73aeb"
+      baywheels: "c3f56bed-65e3-425b-999e-82b3a4f73aeb",
+      curbside: true,
     },
     "work": {
       bart: {
@@ -209,7 +210,7 @@ const App = () => {
         stops: [15551, 15552, 13293, 13291, 13292],
         routes: ["14", "14R", "49"]
       },
-      ac: []
+      ac: [],
     }
   }
 
@@ -219,7 +220,7 @@ const App = () => {
       <ACTransit stops={settings[selection].ac} />
       <Muni {...settings[selection].muni} />
       <BayWheels station={settings[selection].baywheels}/>
-      <Curbside />
+      {settings[selection].curbside && <Curbside />}
     </div>
   );
 }
