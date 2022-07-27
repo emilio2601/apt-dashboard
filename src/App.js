@@ -134,6 +134,60 @@ const Muni = ({stops, routes}) => {
   ))
 }
 
+const BayWheels = ({station}) => {
+  const [data, setData] = useState({})
+
+  const fetchData = async () => {
+    const res = await axios.get(`https://gbfs.baywheels.com/gbfs/es/station_status.json`)
+    setData(res.data.data.stations.filter((st) => st.station_id == station)[0])
+  }
+
+  useEffect(() => {
+    const id = setInterval(fetchData, 60_000)
+    fetchData()
+    return () => clearInterval(id)
+  }, [])
+
+  return station && (
+      <>
+        <img src="https://pbs.twimg.com/profile_images/1460855608567992321/dOlFd5Pj_400x400.jpg" className="rounded-full border"/>
+        <RouteDescription destination={`${data?.num_bikes_available} regular bikes`} location="Telegraph Av & Shattuck Av" />
+        <span className="font-medium col-span-3 items-center">
+        </span>
+      </>
+  )
+}
+
+const Curbside = () => {
+  const [data, setData] = useState([])
+
+  const hasMaltball = data.filter((f) => f.toLowerCase().includes("malt")).length > 0
+
+  const fetchData = async () => {
+    const res = await axios.get("http://ep.wefunder.ai:12345/")
+    const el = document.createElement("html")
+    el.innerHTML = res.data
+    const scoopsElement = Array.from(el.getElementsByTagName("h2")).filter((e) => e.textContent == "Scoops")[0]
+    const flavors = Array.from(scoopsElement.nextSibling.children).map((e) => e.children[0].textContent)
+    setData(flavors)
+  }
+
+  useEffect(() => {
+    const id = setInterval(fetchData, 600_000)
+    fetchData()
+    return () => clearInterval(id)
+  }, [])
+
+  return hasMaltball && (
+      <>
+        <img src="https://pbs.twimg.com/profile_images/1216872103976136704/y4zak545_400x400.jpg" className="rounded-full self-center w-24"/>
+        <RouteDescription destination="Vanilla Maltball" location="Telegraph Av & 49th St" />
+        <span className="font-medium col-span-3 items-center">
+        </span>
+      </>
+  )
+}
+
 
 const App = () => {
   const [selection, setSelection] = useState("home")
@@ -147,6 +201,7 @@ const App = () => {
       },
       ac: [55989, 52935, 55898],
       muni: [],
+      baywheels: "c3f56bed-65e3-425b-999e-82b3a4f73aeb"
     },
     "work": {
       bart: {
@@ -163,10 +218,12 @@ const App = () => {
   }
 
   return (
-    <div className="px-16 pt-8 text-[40px] grid grid-cols-10 gap-x-16 gap-y-16 items-center">
+    <div className="px-16 pt-8 grid grid-cols-10 gap-x-16 gap-y-12 items-center">
       <BART {...settings[selection].bart} />
       <ACTransit stops={settings[selection].ac} />
       <Muni {...settings[selection].muni} />
+      <BayWheels station={settings[selection].baywheels}/>
+      <Curbside />
     </div>
   );
 }
