@@ -33,26 +33,16 @@ const ACTransit = ({stops}) => {
   }, [])
 
   const routeColors = {
-    "6": "bg-[#006db8]",
-    "18": "bg-[#8d6539]",
-    "800": "bg-[#b8cf2e]",
+    "6": "#006db8",
+    "18": "#8d6539",
+    "800": "#b8cf2e",
   }
 
   return Object.values(data).map((prds, idx) => (
     <Fragment key={idx}>
-      <div className={`rounded-full w-40 text-center ${routeColors[prds[0].rt]}`}>
-        <span className="text-white text-[60px]">{prds[0].rt}</span>
-      </div>
-
-      <div className="col-span-6 space-x-4 pl-4">
-        <span>{prds[0].rtdir.substring(3)}</span>
-        <span className="text-[16px]">at {prds[0].stpnm}</span>
-      </div>
-
-      <span className="font-medium col-span-3">
-        {prds.map((prd, idx) => <span key={idx} className={prd.prdctdn > 7 ? "text-green" : "text-red"}>{prd.prdctdn}{idx === prds.length - 1 ? "" : ", "}</span>)}
-        <span className="float-right text-[40px]">min</span>
-      </span>
+      <RouteBullet bulletColor={routeColors[prds[0].rt]} routeColor="white" routeName={prds[0].rt}/>
+      <RouteDescription destination={prds[0].rtdir.substring(3)} location={prds[0].stpnm} />
+      <RouteETA etas={prds.map((est) => est.prdctdn)} threshold={7} />
     </Fragment>
   ))
 }
@@ -76,18 +66,37 @@ const BART = ({stationCode, stationName, destinations}) => {
   
   return data.map((route, idx) => (
     <Fragment key={idx}>
-      <div className={`rounded-full w-40 h-24`} style={{backgroundColor: route.estimate[0].hexcolor}}></div>
-      <div className="col-span-6 space-x-4 pl-4">
-        <span>{route.destination}</span>
-        <span className="text-[16px]">at {stationName} BART</span>
-      </div>
-      <span className="font-medium col-span-3 items-center">
-        {route.estimate.map((est, idx) => <span key={idx} className={est.minutes > 12 ? "text-green" : "text-red"}>{est.minutes}{idx === route.estimate.length - 1 ? "" : ", "}</span>)}
-        <span className="float-right text-[40px]">min</span>
-      </span>
-      
+      <RouteBullet bulletColor={route.estimate[0].hexcolor} />
+      <RouteDescription destination={route.destination} location={`${stationName} BART`} />
+      <RouteETA etas={route.estimate.map((est) => est.minutes)} threshold={12} />
     </Fragment>
   ))
+}
+
+const RouteBullet = ({ bulletColor, routeColor, routeName }) => {
+  return (
+    <div className="rounded-full w-32 h-20 text-center" style={{backgroundColor: bulletColor}}>
+      <span className="text-[48px]" style={{color: routeColor}}>{routeName}</span>
+    </div>
+  )
+}
+
+const RouteDescription = ({ destination, location }) => {
+  return (
+    <div className="col-span-6 space-x-4 pl-4">
+      <span className="text-[36px]">{destination}</span>
+      <span className="text-[14px]">at {location}</span>
+    </div>
+  )
+}
+
+const RouteETA = ({ etas, threshold }) => {
+  return (
+    <span className="font-medium col-span-3 items-center text-[36px]">
+      {etas.map((est, idx) => <span key={idx} className={est > threshold ? "text-green" : "text-red"}>{est}{idx === etas.length - 1 ? "" : ", "}</span>)}
+      <span className="float-right">min</span>
+    </span>
+  )
 }
 
 const Muni = ({stops, routes}) => {
@@ -114,13 +123,8 @@ const Muni = ({stops, routes}) => {
 
   return data.map((route, idx) => (
     <Fragment key={idx}>
-      <div className="rounded-full w-40 h-24 text-center" style={{backgroundColor: `#${route.route.color}`}}>
-        <span className="text-[60px]" style={{color: `#${route.route.textColor}`}}>{route.route.id}</span>
-      </div>
-      <div className="col-span-6 space-x-4 pl-4">
-        <span>{route.route.title.slice(route.route.id.length + 1)} / {route.values[0].direction.destinationName.slice(route.values[0].direction.name.length + 4)}</span>
-        <span className="text-[16px]">at {route.stop.name}</span>
-      </div>
+      <RouteBullet bulletColor={`#${route.route.color}`} routeColor={`#${route.route.textColor}`} routeName={route.route.id}/>
+      <RouteDescription destination={`${route.route.title.slice(route.route.id.length + 1)} / ${route.values[0].direction.destinationName.slice(route.values[0].direction.name.length + 4)}`} location={route.stop.name} />
       <span className="font-medium col-span-3 items-center">
         {route.values.map((est, idx) => <span key={idx} className={est.minutes > 3 ? "text-green" : "text-red"}>{est.minutes}{idx === route.values.length - 1 ? "" : ", "}</span>)}
         <span className="float-right text-[40px]">min</span>
