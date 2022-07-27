@@ -139,7 +139,7 @@ const BayWheels = ({station}) => {
   }
 
   useEffect(() => {
-    const id = setInterval(fetchData, 60_000)
+    const id = setInterval(fetchData, 600_000)
     fetchData()
     return () => clearInterval(id)
   }, [])
