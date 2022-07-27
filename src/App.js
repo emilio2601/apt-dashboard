@@ -125,11 +125,7 @@ const Muni = ({stops, routes}) => {
     <Fragment key={idx}>
       <RouteBullet bulletColor={`#${route.route.color}`} routeColor={`#${route.route.textColor}`} routeName={route.route.id}/>
       <RouteDescription destination={`${route.route.title.slice(route.route.id.length + 1)} / ${route.values[0].direction.destinationName.slice(route.values[0].direction.name.length + 4)}`} location={route.stop.name} />
-      <span className="font-medium col-span-3 items-center">
-        {route.values.map((est, idx) => <span key={idx} className={est.minutes > 3 ? "text-green" : "text-red"}>{est.minutes}{idx === route.values.length - 1 ? "" : ", "}</span>)}
-        <span className="float-right text-[40px]">min</span>
-      </span>
-      
+      <RouteETA etas={route.values.map((est) => est.minutes)} threshold={5} />      
     </Fragment>
   ))
 }
