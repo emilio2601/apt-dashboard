@@ -193,7 +193,7 @@ const App = () => {
       bart: {
         stationCode: "MCAR",
         stationName: "MacArthur",
-        destinations: ["SFIA", "DALY"]
+        destinations: ["SFIA", "DALY", "MLBR"]
       },
       ac: [55989, 52935, 55898],
       muni: [],
