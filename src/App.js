@@ -54,7 +54,7 @@ const BART = ({stationCode, stationName, destinations}) => {
     const res = await axios.get(`https://api.bart.gov/api/etd.aspx?cmd=etd&orig=${stationCode}&key=MW9S-E7SL-26DU-VV8V&json=y`)
 
     console.log(res.data.root.station[0].etd)
-    setData(res.data.root.station[0].etd.filter(etd => destinations.includes(etd.abbreviation)))
+    setData(res.data.root.station[0].etd?.filter(etd => destinations.includes(etd.abbreviation)) || [])
   }
 
   useEffect(() => {
@@ -103,6 +103,10 @@ const Muni = ({stops, routes}) => {
   const [data, setData] = useState([])
 
   const fetchData = async () => {
+    if (!stops) {
+      return []
+    }
+    
     const aggregated = await stops.reduce(async (acc, stop) => {
       const res = await axios.get(`https://webservices.umoiq.com/api/pub/v1/agencies/sf-muni/stopcodes/${stop}/predictions?key=0be8ebd0284ce712a63f29dcaf7798c4`)
       const filteredRoutes = res.data.filter((route) => route.values.length > 0 && routes.includes(route.route.id))
@@ -118,8 +122,6 @@ const Muni = ({stops, routes}) => {
     fetchData()
     return () => clearInterval(id)
   }, [])
-
-  
 
   return data.map((route, idx) => (
     <Fragment key={idx}>
