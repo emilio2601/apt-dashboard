@@ -1,4 +1,5 @@
 import React, { Fragment, useState, useEffect } from "react";
+import GtfsRealtimeBindings from "gtfs-realtime-bindings";
 import axios from "axios";
 
 
@@ -77,6 +78,14 @@ const RouteBullet = ({ bulletColor, routeColor, routeName }) => {
   return (
     <div className="rounded-full w-32 h-20 text-center" style={{backgroundColor: bulletColor}}>
       <span className="text-[48px]" style={{color: routeColor}}>{routeName}</span>
+    </div>
+  )
+}
+
+const MTABusBullet = ({ routeName, customClass }) => {
+  return (
+    <div className={`rounded-full text-center bg-[#1d59b3] ${customClass}`}>
+      <span className="text-[20px] font-bold text-white my-auto mx-auto">{routeName}</span>
     </div>
   )
 }
@@ -186,6 +195,98 @@ const Curbside = () => {
   )
 }
 
+const MTASubway = () => {
+  const [data, setData] = useState({manhStops: [], brooklynStops: []})
+  const [currentTime, setCurrentTime] = useState(new Date().getTime() / 1000)
+
+  const fetchData = async () => {
+    const res = await axios.get("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l", {headers: {"x-api-key": "tM18qpEMTq1zYoiRmXeB64RNMl3JqI0c6xwvOsBD"}, responseType: "arraybuffer"})
+    const decoded = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
+      new Uint8Array(res.data)
+    );
+    console.log(decoded)
+
+    const manhStops = decoded.entity.map((e) => e.tripUpdate?.stopTimeUpdate?.filter((s) => s.stopId == "L06N")[0]?.arrival?.time).filter(Boolean).sort()
+    const brooklynStops = decoded.entity.map((e) => e.tripUpdate?.stopTimeUpdate?.filter((s) => s.stopId == "L06S")[0]?.arrival?.time).filter(Boolean).sort()
+    setData({manhStops: manhStops, brooklynStops: brooklynStops})
+  }
+
+  const manhTimes = data.manhStops.map((t) => Math.round((t - currentTime) / 60)).filter(Boolean).slice(0, 6)
+  const brooklynTimes = data.brooklynStops.map((t) => Math.round((t - currentTime) / 60)).filter(Boolean).slice(0, 6)
+
+  const updateCurrentTime = () => {
+    setCurrentTime(new Date().getTime() / 1000)
+  }
+
+
+  useEffect(() => {
+    const id = setInterval(fetchData, 600_000)
+    fetchData()
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    const id = setInterval(updateCurrentTime, 1_000)
+    updateCurrentTime()
+    return () => clearInterval(id)
+  }, [])
+
+
+  return  <>
+    <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-32"/>
+    <RouteDescription destination="8 Av" location="1 Av" />
+    <RouteETA etas={manhTimes} threshold={9} />
+    <div className="col-span-1"/>
+    <div className="col-span-9 space-x-4 pl-4 text-lg">
+      <span>The next <span className="font-semibold">8 Av</span>-bound <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-10 inline px-1"/> arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{manhTimes.filter((t) => t > 9)[0] + 2}</span> mins</span>
+    </div>
+    <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-32"/>
+    <RouteDescription destination="Canarsie—Rockaway Pkwy" location="1 Av" />
+    <RouteETA etas={brooklynTimes} threshold={8} />  
+  </>
+}
+
+const MTABus = () => {
+  const [data, setData] = useState([])
+  const [currentTime, setCurrentTime] = useState(new Date().getTime() / 1000)
+
+  const fetchData = async () => {
+    const res = await axios.get("http://localhost:8008/")
+    const stops = res.data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit
+
+    const times = stops.map((s) => new Date(s.MonitoredVehicleJourney.MonitoredCall.ExpectedArrivalTime).getTime() / 1000)
+    setData(times)
+  }
+  
+  const updateCurrentTime = () => {
+    setCurrentTime(new Date().getTime() / 1000)
+  }
+
+  const times = data.map((t) => Math.round((t - currentTime) / 60)).filter(Boolean).slice(0, 4)
+
+  useEffect(() => {
+    const id = setInterval(fetchData, 600_000)
+    fetchData()
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    const id = setInterval(updateCurrentTime, 1_000)
+    updateCurrentTime()
+    return () => clearInterval(id)
+  }, [])
+
+  return  <>
+    <MTABusBullet routeName="M14D-SBS" customClass="flex w-32 h-12 mx-auto my-auto"/>
+    <RouteDescription destination="11 Av via 14 St" location="E 11th St & Av C" />
+    <RouteETA etas={times} threshold={4} />
+    <div className="col-span-1"/>
+    <div className="col-span-6 space-x-4 pl-4 text-lg">
+      <span>The next <span className="font-semibold">11 Av</span>-bound <MTABusBullet routeName="M14D-SBS" customClass="p-2 inline mx-1"/> arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{times.filter((t) => t > 4)[0] + 11}</span> mins</span>
+    </div>
+  </>
+}
+
 
 const App = () => {
   const [selection, setSelection] = useState("home")
@@ -218,11 +319,13 @@ const App = () => {
 
   return (
     <div className="px-16 pt-8 grid grid-cols-10 gap-x-16 gap-y-12 items-center">
-      <BART {...settings[selection].bart} />
+      {/* <BART {...settings[selection].bart} />
       <ACTransit stops={settings[selection].ac} />
       <Muni {...settings[selection].muni} />
       <BayWheels station={settings[selection].baywheels}/>
-      {settings[selection].curbside && <Curbside />}
+      {settings[selection].curbside && <Curbside />} */}
+      <MTASubway />
+      <MTABus />
     </div>
   );
 }
