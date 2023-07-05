@@ -94,7 +94,7 @@ const RouteDescription = ({ destination, location }) => {
   return (
     <div className="col-span-6 space-x-4 pl-4">
       <span className="text-[40px]">{destination}</span>
-      <span className="text-[16px]">at {location}</span>
+      <span className="text-[20px]">at {location}</span>
     </div>
   )
 }
@@ -211,8 +211,8 @@ const MTASubway = () => {
     setData({manhStops: manhStops, brooklynStops: brooklynStops})
   }
 
-  const manhTimes = data.manhStops.map((t) => Math.round((t - currentTime) / 60)).filter(Boolean).slice(0, 6)
-  const brooklynTimes = data.brooklynStops.map((t) => Math.round((t - currentTime) / 60)).filter(Boolean).slice(0, 6)
+  const manhTimes = data.manhStops.map((t) => Math.round((t - currentTime) / 60)).filter((x) => x > 0).slice(0, 6)
+  const brooklynTimes = data.brooklynStops.map((t) => Math.round((t - currentTime) / 60)).filter((x) => x > 0).slice(0, 6)
 
   const updateCurrentTime = () => {
     setCurrentTime(new Date().getTime() / 1000)
@@ -233,14 +233,14 @@ const MTASubway = () => {
 
 
   return  <>
-    <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-32"/>
+    <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-24"/>
     <RouteDescription destination="8 Av" location="1 Av" />
     <RouteETA etas={manhTimes} threshold={9} />
     <div className="col-span-1"/>
-    <div className="col-span-9 space-x-4 pl-4 text-lg">
+    <div className="col-span-9 space-x-4 pl-4 text-2xl">
       <span>The next <span className="font-semibold">8 Av</span>-bound <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-10 inline px-1"/> arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{manhTimes.filter((t) => t > 9)[0] + 2}</span> mins</span>
     </div>
-    <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-32"/>
+    <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-24"/>
     <RouteDescription destination="Canarsie—Rockaway Pkwy" location="1 Av" />
     <RouteETA etas={brooklynTimes} threshold={8} />  
   </>
@@ -325,7 +325,7 @@ const App = () => {
       <BayWheels station={settings[selection].baywheels}/>
       {settings[selection].curbside && <Curbside />} */}
       <MTASubway />
-      <MTABus />
+      {/* <MTABus /> */}
     </div>
   );
 }
