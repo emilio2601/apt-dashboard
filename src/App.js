@@ -306,7 +306,7 @@ const MTASubway = () => {
     <div className="col-span-9 space-x-4 pl-4 text-2xl">
       <span>The next <span className="font-semibold">8 Av</span>-bound <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-10 inline px-1"/> arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{unionSqArrivalTime[1]}</span> mins</span>
     </div>
-    <TransferRow route={firstTrainAtGrandCentral?.route} direction="uptown" destination="59th Street—Lexington Ave" arrivalMins={firstTrainAtGrandCentralArrivalTime[1]} />
+    <TransferRow route={firstTrainAtGrandCentral?.route} direction="uptown" destination="59 St—Lexington Ave" arrivalMins={firstTrainAtGrandCentralArrivalTime[1]} />
     <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-24"/>
     <RouteDescription destination="Canarsie—Rockaway Pkwy" location="1 Av" />
     <RouteETA etas={brooklynTimes.map((t) => t.arrival)} threshold={8} />  
