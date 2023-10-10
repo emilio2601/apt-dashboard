@@ -446,7 +446,7 @@ const App = () => {
   }
 
   return (
-    <div className="px-16 pt-8 grid grid-cols-10 gap-x-16 gap-y-12 items-center">
+    <div className="px-16 pt-8 grid grid-cols-10 gap-x-16 gap-y-12 items-center bg-coolgray-900 text-white pb-64">
       {/* <BART {...settings[selection].bart} />
       <ACTransit stops={settings[selection].ac} />
       <Muni {...settings[selection].muni} />
