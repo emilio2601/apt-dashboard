@@ -305,7 +305,7 @@ const MTASubway = () => {
     <RouteETA etas={lTimes.map((t) => t.arrival)} threshold={10} />
     <div className="col-span-1"/>
     <div className="col-span-9 space-x-4 pl-4 text-2xl">
-      <span>The next <span className="font-semibold">8 Av</span>-bound <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-10 inline px-1"/> arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{unionSqArrivalTime[1]}</span> mins</span>
+      <span>The next <span className="font-semibold">8 Av</span>-bound <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-10 inline px-1 mb-1"/> arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{unionSqArrivalTime[1]}</span> mins</span>
     </div>
     <TransferRow route={firstTrainAtLex?.route} direction="uptown" destination="59 St—Lexington Ave" arrivalMins={firstTrainAtLexArrivalTime[1]} />
     <img src="https://api.mta.info/lineIcons/F.svg" className="rounded-full w-24"/>
@@ -368,7 +368,7 @@ const TransferRow = ({ route, direction, destination, arrivalMins }) => {
     <>
       <div className="col-span-1"/>
        <div className="col-span-9 space-x-4 pl-4 text-2xl">
-        <span>Transfer to {direction == "uptown" ? "an" : "a"} {direction} <span className="font-semibold">{termini[direction][route]}</span>-bound <img src={`https://api.mta.info/lineIcons/${route}.svg`} className="rounded-full w-10 inline px-1"/> and arrive at <span className="font-semibold">{destination}</span> in <span className="text-green font-bold">{arrivalMins}</span> mins</span>
+        <span>Transfer to {direction == "uptown" ? "an" : "a"} {direction} <span className="font-semibold">{termini[direction][route]}</span>-bound <img src={`https://api.mta.info/lineIcons/${route}.svg`} className="rounded-full w-10 inline px-1 mb-1"/> and arrive at <span className="font-semibold">{destination}</span> in <span className="text-green font-bold">{arrivalMins}</span> mins</span>
       </div>
     </>
   )
