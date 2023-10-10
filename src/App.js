@@ -417,7 +417,7 @@ const MTABus = () => {
 
 
 const App = () => {
-  const [selection, setSelection] = useState("home")
+  const [isDarkMode, setIsDarkMode] = useState(false)
   
   const settings = {
     "home": {
@@ -445,8 +445,24 @@ const App = () => {
     }
   }
 
+  const checkDarkMode = () => {
+    const date = new Date();
+    
+    if (date.getHours() < 6) {
+      setIsDarkMode(true)
+    } else {
+      setIsDarkMode(false)
+    }
+  }
+
+  useEffect(() => {
+    const id = setInterval(checkDarkMode, 600_000)
+    checkDarkMode()
+    return () => clearInterval(id)
+  }, [])
+
   return (
-    <div className="px-16 pt-8 grid grid-cols-10 gap-x-16 gap-y-12 items-center bg-coolgray-900 text-white pb-64">
+    <div className={`p-16 pb-64 grid grid-cols-10 gap-x-16 gap-y-12 items-center ${isDarkMode ? "bg-coolgray-900 text-white" : ""}`}>
       {/* <BART {...settings[selection].bart} />
       <ACTransit stops={settings[selection].ac} />
       <Muni {...settings[selection].muni} />
