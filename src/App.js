@@ -198,7 +198,7 @@ const Curbside = () => {
 const MTASubway = () => {
   const [rawData, setRawData] = useState({entity: []});
   const [rawIRTData, setRawIRTData] = useState({entity: []});
-  const [data, setData] = useState({manhStops: [], brooklynStops: [], irtNorthStops: [], irtSouthStops: []})
+  const [data, setData] = useState({lStops: [], fStops: [], irtNorthStops: [], irtSouthStops: []})
   const [currentTime, setCurrentTime] = useState(new Date().getTime() / 1000)
 
   const processData = (data, stop) => {
@@ -250,35 +250,36 @@ const MTASubway = () => {
       new Uint8Array(res.data)
     );
 
+    const fRes = await axios.get("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm", {headers: {"x-api-key": "tM18qpEMTq1zYoiRmXeB64RNMl3JqI0c6xwvOsBD"}, responseType: "arraybuffer"})
+    const fDecoded = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
+      new Uint8Array(fRes.data)
+    );
+
     const irtRes = await axios.get("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs", {headers: {"x-api-key": "tM18qpEMTq1zYoiRmXeB64RNMl3JqI0c6xwvOsBD"}, responseType: "arraybuffer"})
     const irtDecoded = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
       new Uint8Array(irtRes.data)
     );
 
     console.log(decoded)
-    console.log(irtDecoded)
+    console.log(fDecoded)
     setRawData(decoded)
     setRawIRTData(irtDecoded)
 
 
-    const manhStops = processData(decoded, "L06N")
-    const brooklynStops = processData(decoded, "L05N")
-    setData({manhStops: manhStops, brooklynStops: brooklynStops, irtNorthStops: processData(irtDecoded, "635N"), irtSouthStops: processData(irtDecoded, "635S")})
+    const lStops = processData(decoded, "L06N")
+    const fStops = processData(fDecoded, "F14N")
+    setData({lStops: lStops, fStops: fStops, irtNorthStops: processData(irtDecoded, "635N"), irtSouthStops: processData(irtDecoded, "635S")})
   }
 
-  const manhTimes = transformUnixToMinutes(data.manhStops, currentTime).slice(0, 6)
-  const brooklynTimes = transformUnixToMinutes(data.brooklynStops, currentTime).slice(0, 6)
+  const lTimes = transformUnixToMinutes(data.lStops, currentTime).slice(0, 6)
+  const fTimes = transformUnixToMinutes(data.fStops, currentTime).slice(0, 4)
 
-  const firstUnionSqTripId = manhTimes.filter((t) => t.arrival > 12)[0]?.tripId;
+  const firstUnionSqTripId = lTimes.filter((t) => t.arrival > 12)[0]?.tripId;
   const unionSqArrivalTime = getStopArrivalTimeForTrip(rawData, "L03N", firstUnionSqTripId, currentTime);
 
-  const candidateDowntownTrains = data.irtSouthStops.filter((t) => t.arrival.time > (unionSqArrivalTime[0] + 120));
-  const firstTrainAtWall = getFirstTrainToDest(rawIRTData, candidateDowntownTrains.map((t) => t.tripId), "419S");
-  const firstTrainAtWallArrivalTime = getStopArrivalTimeForTrip(rawIRTData, "419S", firstTrainAtWall?.tripId, currentTime);
-
   const candidateUptownTrains = data.irtNorthStops.filter((t) => t.arrival.time > (unionSqArrivalTime[0] + 120));
-  const firstTrainAtGrandCentral = getFirstTrainToDest(rawIRTData, candidateUptownTrains.map((t) => t.tripId), "629N");
-  const firstTrainAtGrandCentralArrivalTime = getStopArrivalTimeForTrip(rawIRTData, "629N", firstTrainAtGrandCentral?.tripId, currentTime);
+  const firstTrainAtLex = getFirstTrainToDest(rawIRTData, candidateUptownTrains.map((t) => t.tripId), "629N");
+  const firstTrainAtLexArrivalTime = getStopArrivalTimeForTrip(rawIRTData, "629N", firstTrainAtLex?.tripId, currentTime);
 
 
   const updateCurrentTime = () => {
@@ -301,15 +302,15 @@ const MTASubway = () => {
   return  <>
     <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-24"/>
     <RouteDescription destination="8 Av" location="1 Av" />
-    <RouteETA etas={manhTimes.map((t) => t.arrival)} threshold={12} />
+    <RouteETA etas={lTimes.map((t) => t.arrival)} threshold={10} />
     <div className="col-span-1"/>
     <div className="col-span-9 space-x-4 pl-4 text-2xl">
       <span>The next <span className="font-semibold">8 Av</span>-bound <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-10 inline px-1"/> arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{unionSqArrivalTime[1]}</span> mins</span>
     </div>
-    <TransferRow route={firstTrainAtGrandCentral?.route} direction="uptown" destination="59 St—Lexington Ave" arrivalMins={firstTrainAtGrandCentralArrivalTime[1]} />
-    <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-24"/>
-    <RouteDescription destination="Canarsie—Rockaway Pkwy" location="1 Av" />
-    <RouteETA etas={brooklynTimes.map((t) => t.arrival)} threshold={8} />  
+    <TransferRow route={firstTrainAtLex?.route} direction="uptown" destination="59 St—Lexington Ave" arrivalMins={firstTrainAtLexArrivalTime[1]} />
+    <img src="https://api.mta.info/lineIcons/F.svg" className="rounded-full w-24"/>
+    <RouteDescription destination="Jamaica—179 St" location="2 Av" />
+    <RouteETA etas={fTimes.map((t) => t.arrival)} threshold={12} />
   </>
 }
 
