@@ -196,6 +196,7 @@ const Curbside = () => {
 }
 
 const MTASubway = () => {
+  const [alerts, setAlerts] = useState([]);
   const [rawData, setRawData] = useState({entity: []});
   const [rawIRTData, setRawIRTData] = useState({entity: []});
   const [data, setData] = useState({lStops: [], fStops: [], irtNorthStops: [], irtSouthStops: []})
@@ -260,10 +261,20 @@ const MTASubway = () => {
       new Uint8Array(irtRes.data)
     );
 
+    const alertsRes = await axios.get("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts", {headers: {"x-api-key": "tM18qpEMTq1zYoiRmXeB64RNMl3JqI0c6xwvOsBD"}, responseType: "arraybuffer"})
+    const alertsDecoded = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
+      new Uint8Array(alertsRes.data)
+    );
+
+    const activeAlerts = alertsDecoded.entity.filter((a) => a.alert.activePeriod[0].start < currentTime && (a.alert.activePeriod[0].end && a.alert.activePeriod[0].end > currentTime))
+    const relevantAlerts = activeAlerts.filter((a) => a.alert.informedEntity[0].routeId == "6")
+
     console.log(decoded)
     console.log(fDecoded)
+    console.log(relevantAlerts)
     setRawData(decoded)
     setRawIRTData(irtDecoded)
+    setAlerts(relevantAlerts)
 
 
     const lStops = processData(decoded, "L06N")
@@ -300,18 +311,68 @@ const MTASubway = () => {
 
 
   return  <>
-    <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-24"/>
+    <MTASubwayBullet route="L" size="lg"/>
     <RouteDescription destination="8 Av" location="1 Av" />
     <RouteETA etas={lTimes.map((t) => t.arrival)} threshold={10} />
     <div className="col-span-1"/>
     <div className="col-span-9 space-x-4 pl-4 text-2xl">
-      <span>The next <span className="font-semibold">8 Av</span>-bound <img src="https://api.mta.info/lineIcons/L.svg" className="rounded-full w-10 inline px-1 mb-1"/> arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{unionSqArrivalTime[1]}</span> mins</span>
+      <span>The next <span className="font-semibold">8 Av</span>-bound <MTASubwayBullet route="L" size="sm"/>arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{unionSqArrivalTime[1]}</span> mins</span>
     </div>
     <TransferRow route={firstTrainAtLex?.route} direction="uptown" destination="59 St—Lexington Ave" arrivalMins={firstTrainAtLexArrivalTime[1]} />
-    <img src="https://api.mta.info/lineIcons/F.svg" className="rounded-full w-24"/>
+    {alerts.slice(0,10).map((a) => <AlertRow alert={a} />)}
+    <MTASubwayBullet route="F" size="lg"/>
     <RouteDescription destination="Jamaica—179 St" location="2 Av" />
     <RouteETA etas={fTimes.map((t) => t.arrival)} threshold={12} />
   </>
+}
+
+const MTASubwayBullet = ({ route, size }) => {
+  const transformRouteName = () => {
+    if (route == "6X" || route == "7X") {
+      return route.replace("X", "d")
+    }
+
+    return route?.toLowerCase()
+  }
+
+  const customClass = size == "sm" ? "w-8 h-8" : "w-32 h-32"
+
+  return (
+    <img src={`https://unpkg.com/mta-subway-bullets@0.5.0/svg/${transformRouteName()}.svg`} className={`rounded-full inline px-1 mb-1 ${customClass}`}/>
+  )
+}
+
+const AlertRow = ({ alert }) => {
+  console.log(alert)
+  const engText = alert.alert.headerText?.translation?.find((t) => t.language == "en")?.text
+  
+  // find line names in brackets and replace for line icon
+  // e.g [F] to <img src="https://api.mta.info/lineIcons/F.svg" className="rounded-full w-10 inline px-1 mb-1"/>
+
+  const separateText = engText?.split(/\[(.*?)\]/g)
+
+  const replacedText = separateText?.map((t) => {
+    if (t.length == 1) {
+      return <MTASubwayBullet route={t} size="sm" />
+    } else {
+      return t
+    }
+  })
+
+  const alertStart = new Date(alert.alert.activePeriod[0].start * 1000)
+  const alertSecondsAgo = Math.round((new Date().getTime() - alertStart.getTime()) / 1000)
+  const alertMinutesAgo = Math.round(alertSecondsAgo / 60)
+
+  return (
+    <>
+      <div className="col-span-1"/>
+      <div className="col-span-8 flex flex-row gap-4 items-center p-4 ml-4 border-yellow bg-yellow-100 rounded-xl text-yellow-800 ">
+        <span className="text-3xl text-yellow-700 font-medium mb-1">⚠️</span>
+        <span>{replacedText} ({alertMinutesAgo} minutes ago)</span>
+      </div>
+      <div className="col-span-1"/>
+    </>
+  )
 }
 
 const TransferRow = ({ route, direction, destination, arrivalMins }) => {
@@ -368,7 +429,7 @@ const TransferRow = ({ route, direction, destination, arrivalMins }) => {
     <>
       <div className="col-span-1"/>
        <div className="col-span-9 space-x-4 pl-4 text-2xl">
-        <span>Transfer to {direction == "uptown" ? "an" : "a"} {direction} <span className="font-semibold">{termini[direction][route]}</span>-bound <img src={`https://api.mta.info/lineIcons/${route}.svg`} className="rounded-full w-10 inline px-1 mb-1"/> and arrive at <span className="font-semibold">{destination}</span> in <span className="text-green font-bold">{arrivalMins}</span> mins</span>
+        <span>Transfer to {direction == "uptown" ? "an" : "a"} {direction} <span className="font-semibold">{termini[direction][route]}</span>-bound <MTASubwayBullet route={route} size="sm" /> and arrive at <span className="font-semibold">{destination}</span> in <span className="text-green font-bold">{arrivalMins}</span> mins</span>
       </div>
     </>
   )
