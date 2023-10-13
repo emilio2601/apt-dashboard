@@ -274,10 +274,10 @@ const MTASubway = () => {
   const lTimes = transformUnixToMinutes(data.lStops, currentTime).slice(0, 5).sort((a, b) => a.arrival - b.arrival)
   const fTimes = transformUnixToMinutes(data.fStops, currentTime).slice(0, 5).sort((a, b) => a.arrival - b.arrival)
 
-  const firstUnionSqTripId = lTimes.filter((t) => t.arrival > 12)[0]?.tripId;
+  const firstUnionSqTripId = lTimes.filter((t) => t.arrival > 10)[0]?.tripId;
   const unionSqArrivalTime = getStopArrivalTimeForTrip(rawData, "L03N", firstUnionSqTripId, currentTime);
 
-  const candidateUptownTrains = data.irtNorthStops.filter((t) => t.arrival.time > (unionSqArrivalTime[0] + 120));
+  const candidateUptownTrains = data.irtNorthStops.filter((t) => t.arrival.time > (unionSqArrivalTime[0] + 75));
   const firstTrainAtLex = getFirstTrainToDest(rawIRTData, candidateUptownTrains.map((t) => t.tripId), "629N");
   const firstTrainAtLexArrivalTime = getStopArrivalTimeForTrip(rawIRTData, "629N", firstTrainAtLex?.tripId, currentTime);
 
