@@ -523,7 +523,7 @@ const App = () => {
   }, [])
 
   return (
-    <div className={`p-16 pb-64 grid grid-cols-10 gap-x-16 gap-y-12 items-center ${isDarkMode ? "bg-gray-900 text-white" : ""}`}>
+    <div className={`px-16 pt-12 pb-64 grid grid-cols-10 gap-x-16 gap-y-4 items-center ${isDarkMode ? "bg-gray-900 text-white" : ""}`}>
       {/* <BART {...settings[selection].bart} />
       <ACTransit stops={settings[selection].ac} />
       <Muni {...settings[selection].muni} />
