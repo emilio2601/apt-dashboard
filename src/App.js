@@ -271,8 +271,8 @@ const MTASubway = () => {
     setData({lStops: lStops, fStops: fStops, irtNorthStops: processData(irtDecoded, "635N"), irtSouthStops: processData(irtDecoded, "635S")})
   }
 
-  const lTimes = transformUnixToMinutes(data.lStops, currentTime).slice(0, 6)
-  const fTimes = transformUnixToMinutes(data.fStops, currentTime).slice(0, 4)
+  const lTimes = transformUnixToMinutes(data.lStops, currentTime).slice(0, 5).sort((a, b) => a.arrival - b.arrival)
+  const fTimes = transformUnixToMinutes(data.fStops, currentTime).slice(0, 5).sort((a, b) => a.arrival - b.arrival)
 
   const firstUnionSqTripId = lTimes.filter((t) => t.arrival > 12)[0]?.tripId;
   const unionSqArrivalTime = getStopArrivalTimeForTrip(rawData, "L03N", firstUnionSqTripId, currentTime);
