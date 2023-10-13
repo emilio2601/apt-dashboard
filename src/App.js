@@ -267,15 +267,13 @@ const MTASubway = () => {
     );
 
     const activeAlerts = alertsDecoded.entity.filter((a) => a.alert.activePeriod[0].start < currentTime && (a.alert.activePeriod[0].end && a.alert.activePeriod[0].end > currentTime))
-    const relevantAlerts = activeAlerts.filter((a) => a.alert.informedEntity[0].routeId == "6")
 
     console.log(decoded)
     console.log(fDecoded)
-    console.log(relevantAlerts)
+    console.log(activeAlerts)
     setRawData(decoded)
     setRawIRTData(irtDecoded)
-    setAlerts(relevantAlerts)
-
+    setAlerts(activeAlerts)
 
     const lStops = processData(decoded, "L06N")
     const fStops = processData(fDecoded, "F14N")
@@ -319,7 +317,9 @@ const MTASubway = () => {
       <span>The next <span className="font-semibold">8 Av</span>-bound <MTASubwayBullet route="L" size="sm"/> arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{unionSqArrivalTime[1]}</span> mins</span>
     </div>
     <TransferRow route={firstTrainAtLex?.route} direction="uptown" destination="59 St—Lexington Ave" arrivalMins={firstTrainAtLexArrivalTime[1]} />
-    {alerts.slice(0,10).map((a) => <AlertRow alert={a} />)}
+    {alerts.filter((a) => a.alert.informedEntity[0].routeId == "L").map((a) => <AlertRow alert={a} />)}
+    {alerts.filter((a) => a.alert.informedEntity[0].stopId == "629N").map((a) => <AlertRow alert={a} />)}
+    {alerts.filter((a) => a.alert.informedEntity[0].stopId == "635N").map((a) => <AlertRow alert={a} />)}
     <MTASubwayBullet route="F" size="lg"/>
     <RouteDescription destination="Jamaica—179 St" location="2 Av" />
     <RouteETA etas={fTimes.map((t) => t.arrival)} threshold={12} />
