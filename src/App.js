@@ -316,7 +316,7 @@ const MTASubway = () => {
     <RouteETA etas={lTimes.map((t) => t.arrival)} threshold={10} />
     <div className="col-span-1"/>
     <div className="col-span-9 space-x-4 pl-4 text-2xl">
-      <span>The next <span className="font-semibold">8 Av</span>-bound <MTASubwayBullet route="L" size="sm"/>arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{unionSqArrivalTime[1]}</span> mins</span>
+      <span>The next <span className="font-semibold">8 Av</span>-bound <MTASubwayBullet route="L" size="sm"/> arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{unionSqArrivalTime[1]}</span> mins</span>
     </div>
     <TransferRow route={firstTrainAtLex?.route} direction="uptown" destination="59 St—Lexington Ave" arrivalMins={firstTrainAtLexArrivalTime[1]} />
     {alerts.slice(0,10).map((a) => <AlertRow alert={a} />)}
@@ -368,7 +368,7 @@ const AlertRow = ({ alert }) => {
       <div className="col-span-1"/>
       <div className="col-span-8 flex flex-row gap-4 items-center p-4 ml-4 border-yellow bg-yellow-50 rounded-xl text-yellow-800 ">
         <span className="text-3xl text-yellow-700 font-medium mb-1">⚠️</span>
-        <span className="font-medium">{replacedText} ({alertMinutesAgo} minutes ago)</span>
+        <span className="font-semibold">{replacedText} ({alertMinutesAgo} minutes ago)</span>
       </div>
       <div className="col-span-1"/>
     </>
