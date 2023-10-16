@@ -201,7 +201,7 @@ const MTASubway = () => {
   const [alerts, setAlerts] = useState([]);
   const [rawData, setRawData] = useState({entity: []});
   const [rawIRTData, setRawIRTData] = useState({entity: []});
-  const [data, setData] = useState({lStops: [], fStops: [], irtNorthStops: [], irtSouthStops: []})
+  const [data, setData] = useState({lStops: [], fStops: [], irtUnionSquareStops: []})
   const [currentTime, setCurrentTime] = useState(new Date().getTime() / 1000)
 
   const processData = (data, stop) => {
@@ -269,17 +269,15 @@ const MTASubway = () => {
     );
 
     const activeAlerts = alertsDecoded.entity.filter((a) => a.alert.activePeriod[0].start < currentTime && (a.alert.activePeriod[0].end && a.alert.activePeriod[0].end > currentTime))
-
-    console.log(decoded)
-    console.log(fDecoded)
-    console.log(activeAlerts)
     setRawData(decoded)
     setRawIRTData(irtDecoded)
     setAlerts(activeAlerts)
 
-    const lStops = processData(decoded, "L06N")
-    const fStops = processData(fDecoded, "F14N")
-    setData({lStops: lStops, fStops: fStops, irtNorthStops: processData(irtDecoded, "635N"), irtSouthStops: processData(irtDecoded, "635S")})
+    setData({
+      lStops: processData(decoded, "L06N"),
+      fStops: processData(fDecoded, "F14N"),
+      irtUnionSquareStops: processData(irtDecoded, "635N"),
+    })
   }
 
   const lTimes = transformUnixToMinutes(data.lStops, currentTime).sort((a, b) => a.arrival - b.arrival)
@@ -288,10 +286,9 @@ const MTASubway = () => {
   const firstUnionSqTripId = lTimes.filter((t) => t.arrival > 10)[0]?.tripId;
   const unionSqArrivalTime = getStopArrivalTimeForTrip(rawData, "L03N", firstUnionSqTripId, currentTime);
 
-  const candidateUptownTrains = data.irtNorthStops.filter((t) => t.arrival.time > (unionSqArrivalTime[0] + 75));
+  const candidateUptownTrains = data.irtUnionSquareStops.filter((t) => t.arrival.time > (unionSqArrivalTime[0] + 75));
   const firstTrainAtLex = getFirstTrainToDest(rawIRTData, candidateUptownTrains.map((t) => t.tripId), "629N");
   const firstTrainAtLexArrivalTime = getStopArrivalTimeForTrip(rawIRTData, "629N", firstTrainAtLex?.tripId, currentTime);
-
 
   const updateCurrentTime = () => {
     setCurrentTime(new Date().getTime() / 1000)
