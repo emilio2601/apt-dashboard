@@ -318,7 +318,7 @@ const MTASubway = () => {
     <div className="col-span-9 space-x-4 pl-4 text-2xl">
       <span>The next <span className="font-semibold">8 Av</span>-bound <MTASubwayBullet route="L" size="sm"/> arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{unionSqArrivalTime[1]}</span> mins</span>
     </div>
-    <TransferRow route={firstTrainAtLex?.route} direction="uptown" destination="59 St—Lexington Ave" arrivalMins={firstTrainAtLexArrivalTime[1]} />
+    <TransferRow route={firstTrainAtLex?.route} direction="uptown" destination="59 St—Lexington Av" arrivalMins={firstTrainAtLexArrivalTime[1]} />
     {alerts.filter((a) => a.alert.informedEntity[0].routeId == "L").map((a) => <AlertRow alert={a} />)}
     {alerts.filter((a) => a.alert.informedEntity[0].stopId == "629N").map((a) => <AlertRow alert={a} />)}
     {alerts.filter((a) => a.alert.informedEntity[0].stopId == "635N").map((a) => <AlertRow alert={a} />)}
