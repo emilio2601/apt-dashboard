@@ -100,9 +100,11 @@ const RouteDescription = ({ destination, location }) => {
 }
 
 const RouteETA = ({ etas, threshold }) => {
+  const capped = etas.slice(0, 5)
+
   return (
     <span className="font-medium col-span-3 items-center text-[40px]">
-      {etas.map((est, idx) => <span key={idx} className={est > threshold ? "text-green" : "text-red"}>{est}{idx === etas.length - 1 ? "" : ", "}</span>)}
+      {capped.map((est, idx) => <span key={idx} className={est > threshold ? "text-green" : "text-red"}>{est}{idx === capped.length - 1 ? "" : ", "}</span>)}
       <span className="float-right">min</span>
     </span>
   )
@@ -280,8 +282,8 @@ const MTASubway = () => {
     setData({lStops: lStops, fStops: fStops, irtNorthStops: processData(irtDecoded, "635N"), irtSouthStops: processData(irtDecoded, "635S")})
   }
 
-  const lTimes = transformUnixToMinutes(data.lStops, currentTime).slice(0, 5).sort((a, b) => a.arrival - b.arrival)
-  const fTimes = transformUnixToMinutes(data.fStops, currentTime).slice(0, 5).sort((a, b) => a.arrival - b.arrival)
+  const lTimes = transformUnixToMinutes(data.lStops, currentTime).sort((a, b) => a.arrival - b.arrival)
+  const fTimes = transformUnixToMinutes(data.fStops, currentTime).sort((a, b) => a.arrival - b.arrival)
 
   const firstUnionSqTripId = lTimes.filter((t) => t.arrival > 10)[0]?.tripId;
   const unionSqArrivalTime = getStopArrivalTimeForTrip(rawData, "L03N", firstUnionSqTripId, currentTime);
