@@ -275,7 +275,7 @@ const MTASubway = () => {
 
     setData({
       lStops: processData(decoded, "L06N"),
-      fStops: processData(fDecoded, "F14N"),
+      fStops: processData(fDecoded, "F14S"),
       irtUnionSquareStops: processData(irtDecoded, "635N"),
     })
   }
@@ -320,8 +320,8 @@ const MTASubway = () => {
     {alerts.filter((a) => a.alert.informedEntity[0].stopId == "629N").map((a) => <AlertRow alert={a} />)}
     {alerts.filter((a) => a.alert.informedEntity[0].stopId == "635N").map((a) => <AlertRow alert={a} />)}
     <MTASubwayBullet route="F" size="lg"/>
-    <RouteDescription destination="Jamaica—179 St" location="2 Av" />
-    <RouteETA etas={fTimes.map((t) => t.arrival)} threshold={12} />
+    <RouteDescription destination="Coney Island—Stillwell Av" location="2 Av" />
+    <RouteETA etas={fTimes.map((t) => t.arrival)} threshold={15} />
   </>
 }
 
