@@ -365,9 +365,9 @@ const AlertRow = ({ alert }) => {
   return (
     <>
       <div className="col-span-1"/>
-      <div className="col-span-8 flex flex-row gap-4 items-center p-4 ml-4 border-yellow bg-yellow-50 rounded-xl text-yellow-800 ">
-        <span className="text-3xl text-yellow-700 font-medium mb-1">⚠️</span>
-        <span className="font-semibold">{replacedText} ({alertMinutesAgo} minutes ago)</span>
+      <div className="col-span-8 flex flex-row gap-4 items-center p-4 ml-4 border-yellow bg-white rounded-xl ">
+        <span className="text-xl bg-yellow-400 rounded-full font-medium text-white text-center w-8 h-8">⚠️</span>
+        <span className="font-semibold text-xl text-yellow-800">{replacedText} ({alertMinutesAgo} minutes ago)</span>
       </div>
       <div className="col-span-1"/>
     </>
