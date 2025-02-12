@@ -352,7 +352,6 @@ const MTASubwayBullet = ({ route, size }) => {
 }
 
 const AlertRow = ({ alert }) => {
-  console.log(alert)
   const engText = alert.alert.headerText?.translation?.find((t) => t.language == "en")?.text
   
   // find line names in brackets and replace for line icon
@@ -371,12 +370,13 @@ const AlertRow = ({ alert }) => {
   const alertStart = new Date(alert.alert.activePeriod[0].start * 1000)
   const alertSecondsAgo = Math.round((new Date().getTime() - alertStart.getTime()) / 1000)
   const alertMinutesAgo = Math.round(alertSecondsAgo / 60)
+  const showAlert = alertMinutesAgo < 800
 
-  return (
+  return showAlert && (
     <>
       <div className="col-span-1"/>
-      <div className="col-span-8 flex flex-row gap-4 items-center p-4 ml-4 border-yellow bg-white rounded-xl ">
-        <span className="text-xl bg-yellow-400 rounded-full font-medium text-white text-center w-8 h-8">⚠️</span>
+      <div className="col-span-8 flex flex-row gap-4 items-center p-4 ml-4 border-yellow bg-yellow-100 rounded-xl ">
+        <span className="text-xl rounded-full font-medium text-white text-center w-8 h-8">⚠️</span>
         <span className="font-semibold text-xl text-yellow-800">{replacedText} ({alertMinutesAgo} minutes ago)</span>
       </div>
       <div className="col-span-1"/>
