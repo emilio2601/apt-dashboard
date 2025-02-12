@@ -2,6 +2,7 @@ import React, { Fragment, useState, useEffect } from "react";
 import GtfsRealtimeBindings from "gtfs-realtime-bindings";
 import axios from "axios";
 
+import { Stops } from "./stops";
 
 const ACTransit = ({stops}) => {
   const [data, setData] = useState([])
@@ -173,7 +174,7 @@ const Curbside = () => {
   const hasMaltball = data.filter((f) => f.toLowerCase().includes("malt")).length > 0
 
   const fetchData = async () => {
-    const res = await axios.get("http://ep.wefunder.ai:12345/")
+    const res = await axios.get("https://api.allorigins.win/get", {params: {url: "https://www.curbsidecreamery.com/menu"}})
     const el = document.createElement("html")
     el.innerHTML = res.data
     const scoopsElement = Array.from(el.getElementsByTagName("h2")).filter((e) => e.textContent == "Scoops")[0]
@@ -199,96 +200,34 @@ const Curbside = () => {
 
 const MTASubway = () => {
   const [alerts, setAlerts] = useState([]);
-  const [rawData, setRawData] = useState({entity: []});
+  const [rawLData, setRawLData] = useState({entity: []});
   const [rawIRTData, setRawIRTData] = useState({entity: []});
-  const [data, setData] = useState({lStops: [], fStops: [], irtUnionSquareStops: []})
+  const [rawBMTData, setRawBMTData] = useState({entity: []});
+  const [rawINDData, setRawINDData] = useState({entity: []});
   const [currentTime, setCurrentTime] = useState(new Date().getTime() / 1000)
 
-  const processData = (data, stop) => {
-    const tripUpdates = data.entity.map((e) => e.tripUpdate).filter(Boolean);
-    const dataForStop = tripUpdates.map((u) => {
-      const stopTimeUpdatesForStop = u.stopTimeUpdate.filter((s) => s.stopId == stop);
-
-      if (stopTimeUpdatesForStop.length > 0) {
-        const stu = stopTimeUpdatesForStop[0];
-        return {
-          arrival: stu.arrival,
-          departure: stu.departure,
-          tripId: u.trip.tripId,
-          route: u.trip.routeId
-        }
-      }
-    }).filter(Boolean);
-
-    return dataForStop;
-  }
-
-  const getStopArrivalTimeForTrip = (data, stop, tripId, currentTime) => {
-    const dataForStop = processData(data, stop);
-    const arrivalTime = dataForStop.filter((d) => d.tripId == tripId)[0]?.arrival?.time;
-    return [arrivalTime, Math.round((arrivalTime - currentTime) / 60)];
-  }
-
-  const transformUnixToMinutes = (tripUpdates, currentTime) => {
-    const times = tripUpdates.map((t) => ({
-      arrival: Math.round((t.arrival.time - currentTime) / 60),
-      tripId: t.tripId
-    }))
-
-    const filteredTimes = times.filter((t) => t.arrival > 0)
-
-    return filteredTimes
-  }
-
-  const getFirstTrainToDest = (data, candidateTrips, dest) => {
-    const tripsArrivingAtDest = processData(data, dest).filter((t) => candidateTrips.includes(t.tripId))
-    const byArrivalTime = tripsArrivingAtDest.sort((a, b) => a.arrival.time - b.arrival.time)
-    return byArrivalTime[0]
+  const getDecodedData = async (url) => {
+    const res = await axios.get(url, {headers: {"x-api-key": "tM18qpEMTq1zYoiRmXeB64RNMl3JqI0c6xwvOsBD"}, responseType: "arraybuffer"})
+    return GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
+      new Uint8Array(res.data)
+    );
   }
 
 
   const fetchData = async () => {
-    const res = await axios.get("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l", {headers: {"x-api-key": "tM18qpEMTq1zYoiRmXeB64RNMl3JqI0c6xwvOsBD"}, responseType: "arraybuffer"})
-    const decoded = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
-      new Uint8Array(res.data)
-    );
-
-    const fRes = await axios.get("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm", {headers: {"x-api-key": "tM18qpEMTq1zYoiRmXeB64RNMl3JqI0c6xwvOsBD"}, responseType: "arraybuffer"})
-    const fDecoded = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
-      new Uint8Array(fRes.data)
-    );
-
-    const irtRes = await axios.get("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs", {headers: {"x-api-key": "tM18qpEMTq1zYoiRmXeB64RNMl3JqI0c6xwvOsBD"}, responseType: "arraybuffer"})
-    const irtDecoded = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
-      new Uint8Array(irtRes.data)
-    );
-
-    const alertsRes = await axios.get("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts", {headers: {"x-api-key": "tM18qpEMTq1zYoiRmXeB64RNMl3JqI0c6xwvOsBD"}, responseType: "arraybuffer"})
-    const alertsDecoded = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
-      new Uint8Array(alertsRes.data)
-    );
-
+    const lDecoded = await getDecodedData("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l")
+    const indDecoded = await getDecodedData("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm")
+    const bmtDecoded = await getDecodedData("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw")
+    const irtDecoded = await getDecodedData("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs")
+    const alertsDecoded = await getDecodedData("https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts")
     const activeAlerts = alertsDecoded.entity.filter((a) => a.alert.activePeriod[0].start < currentTime && (a.alert.activePeriod[0].end && a.alert.activePeriod[0].end > currentTime))
-    setRawData(decoded)
+
+    setRawLData(lDecoded)
+    setRawBMTData(bmtDecoded)
     setRawIRTData(irtDecoded)
+    setRawINDData(indDecoded)
     setAlerts(activeAlerts)
-
-    setData({
-      lStops: processData(decoded, "L06N"),
-      fStops: processData(fDecoded, "F14S"),
-      irtUnionSquareStops: processData(irtDecoded, "635N"),
-    })
   }
-
-  const lTimes = transformUnixToMinutes(data.lStops, currentTime).sort((a, b) => a.arrival - b.arrival)
-  const fTimes = transformUnixToMinutes(data.fStops, currentTime).sort((a, b) => a.arrival - b.arrival)
-
-  const firstUnionSqTripId = lTimes.filter((t) => t.arrival > 10)[0]?.tripId;
-  const unionSqArrivalTime = getStopArrivalTimeForTrip(rawData, "L03N", firstUnionSqTripId, currentTime);
-
-  const candidateUptownTrains = data.irtUnionSquareStops.filter((t) => t.arrival.time > (unionSqArrivalTime[0] + 75));
-  const firstTrainAtLex = getFirstTrainToDest(rawIRTData, candidateUptownTrains.map((t) => t.tripId), "629N");
-  const firstTrainAtLexArrivalTime = getStopArrivalTimeForTrip(rawIRTData, "629N", firstTrainAtLex?.tripId, currentTime);
 
   const updateCurrentTime = () => {
     setCurrentTime(new Date().getTime() / 1000)
@@ -308,21 +247,95 @@ const MTASubway = () => {
 
 
   return  <>
-    <MTASubwayBullet route="L" size="lg"/>
-    <RouteDescription destination="8 Av" location="1 Av" />
-    <RouteETA etas={lTimes.map((t) => t.arrival)} threshold={10} />
-    <div className="col-span-1"/>
-    <div className="col-span-9 space-x-4 pl-4 text-2xl">
-      {!!unionSqArrivalTime[1] && <span>The next <span className="font-semibold">8 Av</span>-bound <MTASubwayBullet route="L" size="sm"/> arrives at <span className="font-semibold">14 St—Union Sq</span> in <span className="text-green font-bold">{unionSqArrivalTime[1]}</span> mins</span>}
-    </div>
-    {/* <TransferRow route={firstTrainAtLex?.route} direction="uptown" destination="59 St—Lexington Av" arrivalMins={firstTrainAtLexArrivalTime[1]} /> */}
-    {alerts.filter((a) => a.alert.informedEntity[0].routeId == "L").map((a) => <AlertRow alert={a} />)}
-    {alerts.filter((a) => a.alert.informedEntity[0].stopId == "629N").map((a) => <AlertRow alert={a} />)}
-    {alerts.filter((a) => a.alert.informedEntity[0].stopId == "635N").map((a) => <AlertRow alert={a} />)}
-    <MTASubwayBullet route="F" size="lg"/>
-    <RouteDescription destination="Coney Island—Stillwell Av" location="2 Av" />
-    <RouteETA etas={fTimes.map((t) => t.arrival)} threshold={15} />
+    <MTAServiceRow originStation="L06N" arrivalThreshold={6} rawData={rawLData} alerts={alerts} />
+    <MTAServiceRow originStation="636N" arrivalThreshold={8} rawData={rawIRTData} alerts={alerts} destinationStation="631N" />
+    <MTAServiceRow originStation="636S" arrivalThreshold={8} rawData={rawIRTData} alerts={alerts} />
+    <MTAServiceRow originStation="R21S" arrivalThreshold={10} rawData={rawBMTData} alerts={alerts} destinationStation="R32S" />
+    <MTAServiceRow originStation="R21N" arrivalThreshold={10} rawData={rawBMTData} alerts={alerts} />
+    <MTAServiceRow originStation="R20S" arrivalThreshold={11} rawData={rawBMTData} alerts={alerts} destinationStation="D25S" onlyTrainsStoppingAtDestination />
+    <MTAServiceRow originStation="F14S" arrivalThreshold={10} rawData={rawINDData} alerts={alerts} />
   </>
+}
+
+const MTAServiceRow = ({ originStation, arrivalThreshold, rawData, alerts, destinationStation = null, onlyTrainsStoppingAtDestination = false}) => {
+  const processData = (data, stop) => {
+    const tripUpdates = data.entity.map((e) => e.tripUpdate).filter(Boolean);
+    const dataForStop = tripUpdates.map((u) => {
+      const stopTimeUpdatesForStop = u.stopTimeUpdate.filter((s) => s.stopId == stop);
+
+      if (stopTimeUpdatesForStop.length > 0) {
+        const stu = stopTimeUpdatesForStop[0];
+        
+        return {
+          arrival: stu.arrival,
+          departure: stu.departure,
+          tripId: u.trip.tripId,
+          route: u.trip.routeId,
+          stoppingAt: u.stopTimeUpdate.map((s) => s.stopId)
+        }
+      }
+    }).filter(Boolean);
+
+    return dataForStop;
+  }
+
+  const transformUnixToMinutes = (tripUpdates, currentTime) => {
+    const times = tripUpdates.map((t) => ({
+      arrival: Math.round((t.arrival.time - currentTime) / 60),
+      tripId: t.tripId,
+      route: t.route,
+      stoppingAt: t.stoppingAt
+    }))
+
+    const filteredTimes = times.filter((t) => t.arrival > 0)
+
+    return filteredTimes
+  }
+
+  const getStopArrivalTimeForTrip = (data, stop, tripId, currentTime) => {
+    const dataForStop = processData(data, stop);
+    const arrivalTime = dataForStop.filter((d) => d.tripId == tripId)[0]?.arrival?.time;
+    return [arrivalTime, Math.round((arrivalTime - currentTime) / 60)];
+  }
+
+  const currentTime = new Date().getTime() / 1000;
+  const stops = processData(rawData, originStation);
+  const times = transformUnixToMinutes(stops, currentTime).sort((a, b) => a.arrival - b.arrival)
+  const filteredTrips = times.filter((t) => !onlyTrainsStoppingAtDestination || t.stoppingAt.includes(destinationStation))
+  const etas = filteredTrips.map((t) => t.arrival)
+  const firstTrip = filteredTrips.filter((t) => t.arrival > arrivalThreshold)[0];
+  const firstTripStoppingAtDest = filteredTrips.filter((t) => t.arrival > arrivalThreshold && t.stoppingAt.includes(destinationStation))[0];
+
+  let destinationStationRow = null;
+
+  if (destinationStation) {
+    const arrivalTime = getStopArrivalTimeForTrip(rawData, destinationStation, firstTripStoppingAtDest?.tripId, currentTime);
+
+    destinationStationRow = <MTADestinationRow route={firstTripStoppingAtDest?.route} arrivalTime={arrivalTime} destinationStation={Stops[destinationStation]} /> 
+  }
+
+  return (
+    <>
+      <MTASubwayBullet route={firstTrip?.route} size="lg"/>
+      <RouteDescription destination={Stops[firstTrip?.stoppingAt.at(-1)]} location={Stops[originStation]} />
+      <RouteETA etas={etas} threshold={arrivalThreshold} />
+      {destinationStationRow}
+      {alerts.filter((a) => a.alert.informedEntity[0].routeId == firstTrip?.route).map((a) => <AlertRow alert={a} />)}
+      {alerts.filter((a) => a.alert.informedEntity[0].stopId == originStation).map((a) => <AlertRow alert={a} />)}
+      {destinationStation && alerts.filter((a) => a.alert.informedEntity[0].stopId == destinationStation).map((a) => <AlertRow alert={a} />)}
+    </>
+  )
+}
+
+const MTADestinationRow = ({ route, arrivalTime, destinationStation }) => {
+  return (
+    <>
+      <div className="col-span-1"></div>
+      <div className="col-span-9 space-x-4 pl-4 text-2xl">
+        {!!arrivalTime[1] && <span>The next <MTASubwayBullet route={route} size="sm"/> arrives at <span className="font-semibold">{destinationStation}</span> in <span className="text-green font-bold">{arrivalTime[1]}</span> mins</span>}
+      </div>
+    </>
+  )
 }
 
 const MTASubwayBullet = ({ route, size }) => {
