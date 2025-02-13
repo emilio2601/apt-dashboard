@@ -295,7 +295,7 @@ const MTAServiceRow = ({ originStation, arrivalThreshold, rawData, alerts, desti
   const getStopArrivalTimeForTrip = (data, stop, tripId, currentTime) => {
     const dataForStop = processData(data, stop);
     const arrivalTime = dataForStop.filter((d) => d.tripId == tripId)[0]?.arrival?.time;
-    return [arrivalTime, Math.round((arrivalTime - currentTime) / 60)];
+    return Math.round((arrivalTime - currentTime) / 60);
   }
 
   const currentTime = new Date().getTime() / 1000;
@@ -332,7 +332,7 @@ const MTADestinationRow = ({ route, arrivalTime, destinationStation }) => {
     <>
       <div className="col-span-1"></div>
       <div className="col-span-9 space-x-4 pl-4 text-2xl">
-        {!!arrivalTime[1] && <span>The next <MTASubwayBullet route={route} size="sm"/> arrives at <span className="font-semibold">{destinationStation}</span> in <span className="text-green font-bold">{arrivalTime[1]}</span> mins</span>}
+        {!!arrivalTime && <span>The next <MTASubwayBullet route={route} size="sm"/> arrives at <span className="font-semibold">{destinationStation}</span> in <span className="text-green font-bold">{arrivalTime}</span> mins</span>}
       </div>
     </>
   )
