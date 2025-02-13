@@ -314,6 +314,10 @@ const MTAServiceRow = ({ originStation, arrivalThreshold, rawData, alerts, desti
     destinationStationRow = <MTADestinationRow route={firstTripStoppingAtDest?.route} arrivalTime={arrivalTime} destinationStation={Stops[destinationStation]} /> 
   }
 
+  if (!firstTrip) {
+    return null;
+  }
+
   return (
     <>
       <MTASubwayBullet route={firstTrip?.route} size="lg"/>
