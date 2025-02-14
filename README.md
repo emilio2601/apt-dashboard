@@ -18,6 +18,7 @@ apt-dashboard utilizes **GTFS real-time feeds** provided by transit agencies, in
 - Supports multiple transit agencies (NYC Subway, SF BART, Muni, and MTA Bus)
 - Simple, easy-to-read transit board interface
 - Correct display for varying train terminals and express/local bullets in NYC
+- Support for MTA service alerts
 
 ## Setup
 ### Installation
