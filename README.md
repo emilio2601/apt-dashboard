@@ -32,7 +32,7 @@ npm install
 ### Running the App
 Start the development server:
 ```sh
-npm run dev
+npm run start
 ```
 
 ### Configuration
