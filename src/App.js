@@ -8,7 +8,7 @@ const ACTransit = ({stops}) => {
   const [data, setData] = useState([])
 
   const fetchData = async () => {
-    const token = "AB9BD2A779420B5ECAF4172AFCAC6C58"
+    const token = process.env.AC_TRANSIT_TOKEN; 
 
     const newData = await stops.reduce(async (acc, stopId) => {
       const data = await axios.get("https://api.actransit.org/transit/actrealtime/prediction", {params: {stpid: stopId, token: token}})
@@ -53,7 +53,7 @@ const BART = ({stationCode, stationName, destinations}) => {
   const [data, setData] = useState([])
 
   const fetchData = async () => {
-    const res = await axios.get(`https://api.bart.gov/api/etd.aspx?cmd=etd&orig=${stationCode}&key=MW9S-E7SL-26DU-VV8V&json=y`)
+    const res = await axios.get(`https://api.bart.gov/api/etd.aspx?cmd=etd&orig=${stationCode}&key=${process.env.BART_API_KEY}&json=y`)
 
     console.log(res.data.root.station[0].etd)
     setData(res.data.root.station[0].etd?.filter(etd => destinations.includes(etd.abbreviation)) || [])
@@ -120,7 +120,7 @@ const Muni = ({stops, routes}) => {
     }
     
     const aggregated = await stops.reduce(async (acc, stop) => {
-      const res = await axios.get(`https://webservices.umoiq.com/api/pub/v1/agencies/sf-muni/stopcodes/${stop}/predictions?key=0be8ebd0284ce712a63f29dcaf7798c4`)
+      const res = await axios.get(`https://webservices.umoiq.com/api/pub/v1/agencies/sf-muni/stopcodes/${stop}/predictions?key=${process.env.MUNI_API_KEY}`)
       const filteredRoutes = res.data.filter((route) => route.values.length > 0 && routes.includes(route.route.id))
       return [...await acc, ...filteredRoutes]
     }, [])
@@ -207,7 +207,7 @@ const MTASubway = () => {
   const [currentTime, setCurrentTime] = useState(new Date().getTime() / 1000)
 
   const getDecodedData = async (url) => {
-    const res = await axios.get(url, {headers: {"x-api-key": "tM18qpEMTq1zYoiRmXeB64RNMl3JqI0c6xwvOsBD"}, responseType: "arraybuffer"})
+    const res = await axios.get(url, {headers: {"x-api-key": process.env.MTA_GTFS_API_KEY}, responseType: "arraybuffer"})
     return GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
       new Uint8Array(res.data)
     );

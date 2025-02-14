@@ -8,7 +8,7 @@ PORT = 8008
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        r = requests.get("https://bustime.mta.info/api/2/siri/stop-monitoring.json?key=0751e36e-4a17-49a5-8dfd-292c370e1296&OperatorRef=MTA%20NYCT&MonitoringRef=MTA_402039&LineRef=MTA%20NYCT_M14D%2B")
+        r = requests.get(f"https://bustime.mta.info/api/2/siri/stop-monitoring.json?key={os.environ.get("MTA_BUS_API_KEY")}6&OperatorRef=MTA%20NYCT&MonitoringRef=MTA_402039&LineRef=MTA%20NYCT_M14D%2B")
         self.write_response(r.content)
 
     def write_response(self, content):
