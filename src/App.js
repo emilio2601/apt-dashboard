@@ -369,7 +369,7 @@ const MTASubwayBullet = ({ route, size }) => {
 }
 
 const AlertRow = ({ alert }) => {
-  const engText = alert.alert.headerText?.translation?.find((t) => t.language == "en")?.text
+  const engText = alert.alert.headerText?.translation?.find((t) => t.language == "en")?.text?.replace(/\n/g, ". ")
   
   // find line names in brackets and replace for line icon
   // e.g [F] to <img src="https://api.mta.info/lineIcons/F.svg" className="rounded-full w-10 inline px-1 mb-1"/>
@@ -377,7 +377,7 @@ const AlertRow = ({ alert }) => {
   const separateText = engText?.split(/\[(.*?)\]/g)
 
   const replacedText = separateText?.map((t) => {
-    if (t.length == 1) {
+    if (t.length == 1 || t.length == 2) { 
       return <MTASubwayBullet route={t} size="sm" />
     } else {
       return t
