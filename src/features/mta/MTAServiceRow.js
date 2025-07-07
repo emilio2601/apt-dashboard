@@ -7,6 +7,19 @@ import RouteDescription from "../../components/RouteDescription";
 import RouteETA from "../../components/RouteETA";
 import { processTripUpdatesForStop, convertTripTimesToMinutes, getTripArrivalTimeAtStop } from "./mtaHelpers";
 
+/**
+ * Renders a row for a specific MTA subway service, displaying upcoming train information.
+ *
+ * @param {object} props - The component props.
+ * @param {string} props.originStation - The ID of the station to get upcoming trips for.
+ * @param {number} props.arrivalThreshold - The minimum number of minutes away a trip must be to be considered the "next" trip.
+ * @param {object} props.rawData - The raw GTFS-RT data for the relevant subway lines.
+ * @param {Array<object>} props.alerts - A list of active MTA alerts.
+ * @param {string|null} [props.destinationStation=null] - An optional destination station to show arrival times for.
+ * @param {boolean} [props.onlyTrainsStoppingAtDestination=false] - If true, only shows trips that stop at the destination station.
+ * @param {number} props.currentTime - The current time in Unix epoch seconds, used to calculate arrival times.
+ * @returns {React.ReactElement|null} A component that displays the service information, or null if no relevant trips are found.
+ */
 const MTAServiceRow = ({ originStation, arrivalThreshold, rawData, alerts, destinationStation = null, onlyTrainsStoppingAtDestination = false, currentTime}) => {
   
   // Get all upcoming trips for the origin station.
