@@ -39,11 +39,11 @@ const App = () => {
 
   return (
     <div className={`px-16 pt-12 pb-64 grid grid-cols-10 gap-x-16 gap-y-4 items-center ${isDarkMode ? "bg-gray-900 text-white" : ""}`}>
-      {currentSettings.bart && <BART {...currentSettings.bart} />}
+      {/* {currentSettings.bart && <BART {...currentSettings.bart} />}
       {currentSettings.ac.length > 0 && <ACTransit stops={currentSettings.ac} />}
       {currentSettings.muni.length > 0 && <Muni stops={currentSettings.muni} />}
       {currentSettings.curbside && <Curbside />}
-      {currentSettings.baywheels && <BayWheels station={currentSettings.baywheels} />}
+      {currentSettings.baywheels && <BayWheels station={currentSettings.baywheels} />} */}
       <MTABus />
       <MTASubway />
     </div>
