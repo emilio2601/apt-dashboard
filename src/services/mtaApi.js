@@ -33,10 +33,18 @@ export const fetchMtaAlerts = async () => {
 export const fetchMtaBusData = async (busStopId, busLineRef) => {
     const monitoringRef = `MTA_${busStopId}`;
     const lineRef = `MTA NYCT_${busLineRef}`;
-    const mtaBusUrl = `https://bustime.mta.info/api/2/siri/stop-monitoring.json?key=${process.env.REACT_APP_MTA_BUS_API_KEY}&OperatorRef=MTA NYCT&MonitoringRef=${monitoringRef}&LineRef=${lineRef}`;
-    
+
+    // Build URL with proper encoding and without template string interpolation
+    const baseUrl = "https://bustime.mta.info/api/2/siri/stop-monitoring.json";
+    const url = new URL(baseUrl);
+    const apiKey = process.env.REACT_APP_MTA_BUS_API_KEY || "";
+    url.searchParams.set("key", apiKey);
+    url.searchParams.set("OperatorRef", "MTA NYCT");
+    url.searchParams.set("MonitoringRef", monitoringRef);
+    url.searchParams.set("LineRef", lineRef);
+
     const response = await axios.get("https://api.allorigins.win/get", {
-        params: { url: mtaBusUrl }
+        params: { url: url.toString() }
     });
 
     if (response.data.contents) {
