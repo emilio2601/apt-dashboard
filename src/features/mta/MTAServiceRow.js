@@ -5,7 +5,7 @@ import MTASubwayBullet from "./components/MTASubwayBullet";
 import AlertRow from "./components/AlertRow";
 import RouteDescription from "../../components/RouteDescription";
 import RouteETA from "../../components/RouteETA";
-import { processTripUpdatesForStop, convertTripTimesToMinutes, getTripArrivalTimeAtStop } from "./mtaHelpers";
+import { processTripUpdatesForStop, convertTripTimesToMinutes, getTripArrivalTimeAtStop, getRawTripArrivalTimeAtStop } from "./mtaHelpers";
 
 /**
  * Renders a row for a specific MTA subway service, displaying upcoming train information.
@@ -20,31 +20,57 @@ import { processTripUpdatesForStop, convertTripTimesToMinutes, getTripArrivalTim
  * @param {number} props.currentTime - The current time in Unix epoch seconds, used to calculate arrival times.
  * @returns {React.ReactElement|null} A component that displays the service information, or null if no relevant trips are found.
  */
-const MTAServiceRow = ({ originStation, arrivalThreshold, rawData, alerts, destinationStation = null, onlyTrainsStoppingAtDestination = false, currentTime}) => {
-  
-  // Get all upcoming trips for the origin station.
+const MTAServiceRow = ({ originStation, arrivalThreshold, rawData, alerts, destinationStation = null, onlyTrainsStoppingAtDestination = false, transfer = null, currentTime}) => {
+
+  const destinations = destinationStation
+    ? (Array.isArray(destinationStation) ? destinationStation : [destinationStation])
+    : [];
+
   const upcomingTrips = processTripUpdatesForStop(rawData, originStation);
-  
-  // Convert trip arrival times to minutes from now, and sort them.
   const upcomingTripsInMinutes = convertTripTimesToMinutes(upcomingTrips, currentTime).sort((a, b) => a.arrival - b.arrival);
-  
-  // Filter for trips that will stop at the destination, if specified.
-  const relevantTrips = upcomingTripsInMinutes.filter((trip) => !onlyTrainsStoppingAtDestination || trip.stoppingAt.includes(destinationStation));
-  
+
+  const relevantTrips = upcomingTripsInMinutes.filter((trip) =>
+    !onlyTrainsStoppingAtDestination || destinations.some(d => trip.stoppingAt.includes(d))
+  );
+
   const etas = relevantTrips.map((trip) => trip.arrival);
-  
-  // Find the next trip that meets the arrival threshold.
   const nextTrip = relevantTrips.find((trip) => trip.arrival > arrivalThreshold);
-  
-  // Find the next trip that also stops at the destination station.
-  const nextTripStoppingAtDest = relevantTrips.find((trip) => trip.arrival > arrivalThreshold && trip.stoppingAt.includes(destinationStation));
+
+  let bestDest = null;
+  for (const dest of destinations) {
+    const trip = relevantTrips.find((t) => t.arrival > arrivalThreshold && t.stoppingAt.includes(dest));
+    if (trip) {
+      const arrivalTime = getTripArrivalTimeAtStop(rawData, dest, trip.tripId, currentTime);
+      if (arrivalTime && (!bestDest || arrivalTime < bestDest.arrivalTime)) {
+        bestDest = { dest, trip, arrivalTime };
+      }
+    }
+  }
 
   let destinationStationRow = null;
+  if (bestDest) {
+    const isDifferentTrain = nextTrip && bestDest.trip.tripId !== nextTrip.tripId;
+    destinationStationRow = <MTADestinationRow route={bestDest.trip.route} arrivalTime={bestDest.arrivalTime} destinationStation={Stops[bestDest.dest]} departureTime={isDifferentTrain ? bestDest.trip.arrival : null} />;
+  }
 
-  if (destinationStation && nextTripStoppingAtDest) {
-    const arrivalTimeAtDestination = getTripArrivalTimeAtStop(rawData, destinationStation, nextTripStoppingAtDest.tripId, currentTime);
+  let transferRow = null;
+  if (transfer && bestDest) {
+    const rawArrivalAtDest = getRawTripArrivalTimeAtStop(rawData, bestDest.dest, bestDest.trip.tripId);
+    const transferTrips = processTripUpdatesForStop(transfer.rawData, transfer.originStation);
 
-    destinationStationRow = <MTADestinationRow route={nextTripStoppingAtDest.route} arrivalTime={arrivalTimeAtDestination} destinationStation={Stops[destinationStation]} /> 
+    if (rawArrivalAtDest) {
+      const nextTransferTrip = transferTrips
+        .filter(t => t.arrival.time > (rawArrivalAtDest + (transfer.transferTime || 120)))
+        .sort((a, b) => a.arrival.time - b.arrival.time)[0];
+
+      if (nextTransferTrip) {
+        const transferArrival = transfer.destinationStation
+          ? getTripArrivalTimeAtStop(transfer.rawData, transfer.destinationStation, nextTransferTrip.tripId, currentTime)
+          : null;
+
+        transferRow = <MTADestinationRow route={nextTransferTrip.route} arrivalTime={transferArrival} destinationStation={Stops[transfer.destinationStation]} isTransfer />;
+      }
+    }
   }
 
   // If there are no upcoming trips that meet the criteria, render nothing.
@@ -60,9 +86,10 @@ const MTAServiceRow = ({ originStation, arrivalThreshold, rawData, alerts, desti
       <RouteDescription destination={Stops[destinationStopId]} location={Stops[originStation]} />
       <RouteETA etas={etas} threshold={arrivalThreshold} />
       {destinationStationRow}
+      {transferRow}
       {alerts.filter((a) => a.alert.informedEntity[0].routeId === nextTrip.route).map((a) => <AlertRow key={a.id} alert={a} />)}
       {alerts.filter((a) => a.alert.informedEntity[0].stopId === originStation).map((a) => <AlertRow key={a.id} alert={a} />)}
-      {destinationStation && alerts.filter((a) => a.alert.informedEntity[0].stopId === destinationStation).map((a) => <AlertRow key={a.id} alert={a} />)}
+      {destinations.map(d => alerts.filter((a) => a.alert.informedEntity[0].stopId === d).map((a) => <AlertRow key={a.id} alert={a} />))}
     </>
   )
 }

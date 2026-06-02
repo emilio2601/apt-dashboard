@@ -74,6 +74,12 @@ export const convertTripTimesToMinutes = (tripUpdates, currentTime) => {
  * @param {number} currentTime - The current time in Unix epoch seconds.
  * @returns {number|null} The arrival time in minutes, or null if not found.
  */
+export const getRawTripArrivalTimeAtStop = (gtfsFeed, stopId, tripId) => {
+  const tripUpdatesForStop = processTripUpdatesForStop(gtfsFeed, stopId);
+  const trip = tripUpdatesForStop.find((update) => update.tripId === tripId);
+  return trip?.arrival?.time || null;
+};
+
 export const getTripArrivalTimeAtStop = (gtfsFeed, stopId, tripId, currentTime) => {
   // Note: This re-processes the entire feed. For high-performance needs, this could be optimized
   // by passing in pre-processed data. For this use case, it's acceptable.
