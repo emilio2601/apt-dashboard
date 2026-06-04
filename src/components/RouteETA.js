@@ -1,7 +1,9 @@
 import React from "react";
 
+export const ETA_DISPLAY_LIMIT = 5;
+
 const RouteETA = ({ etas, threshold }) => {
-  const capped = etas.slice(0, 5)
+  const capped = etas.slice(0, ETA_DISPLAY_LIMIT)
 
   return (
     <span className="font-medium col-span-3 items-center text-[40px]">

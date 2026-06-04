@@ -4,7 +4,7 @@ import MTADestinationRow from "./MTADestinationRow";
 import MTASubwayBullet from "./components/MTASubwayBullet";
 import AlertRow from "./components/AlertRow";
 import RouteDescription from "../../components/RouteDescription";
-import RouteETA from "../../components/RouteETA";
+import RouteETA, { ETA_DISPLAY_LIMIT } from "../../components/RouteETA";
 import { processTripUpdatesForStop, convertTripTimesToMinutes, getTripArrivalTimeAtStop, getRawTripArrivalTimeAtStop } from "./mtaHelpers";
 
 /**
@@ -50,7 +50,10 @@ const MTAServiceRow = ({ originStation, arrivalThreshold, rawData, alerts, desti
   let destinationStationRow = null;
   if (bestDest) {
     const isDifferentTrain = nextTrip && bestDest.trip.tripId !== nextTrip.tripId;
-    destinationStationRow = <MTADestinationRow route={bestDest.trip.route} arrivalTime={bestDest.arrivalTime} destinationStation={Stops[bestDest.dest]} departureTime={isDifferentTrain ? bestDest.trip.arrival : null} />;
+    const tripIndex = relevantTrips.findIndex((t) => t.tripId === bestDest.trip.tripId);
+    const isVisibleInEtas = tripIndex > -1 && tripIndex < ETA_DISPLAY_LIMIT;
+    const showDeparture = isDifferentTrain || !isVisibleInEtas;
+    destinationStationRow = <MTADestinationRow route={bestDest.trip.route} arrivalTime={bestDest.arrivalTime} destinationStation={Stops[bestDest.dest]} departureTime={showDeparture ? bestDest.trip.arrival : null} />;
   }
 
   let transferRow = null;
