@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # --- Build stage ---
-FROM node:18-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
 COPY package*.json ./
@@ -26,7 +26,7 @@ ENV REACT_APP_MTA_GTFS_API_KEY=${REACT_APP_MTA_GTFS_API_KEY} \
 RUN npm run build
 
 # --- Runtime stage ---
-FROM node:18-alpine
+FROM node:24-alpine
 WORKDIR /app
 
 RUN npm i -g serve@14
