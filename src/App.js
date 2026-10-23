@@ -38,7 +38,7 @@ const App = () => {
   const currentSettings = settings[selection];
 
   return (
-    <div className={`px-16 pt-12 pb-64 grid grid-cols-10 gap-x-16 gap-y-4 items-center ${isDarkMode ? "bg-gray-900 text-white" : ""}`}>
+    <div className={`transit-dashboard ${isDarkMode ? "bg-gray-900 text-white" : ""}`}>
       {/* {currentSettings.bart && <BART {...currentSettings.bart} />}
       {currentSettings.ac.length > 0 && <ACTransit stops={currentSettings.ac} />}
       {currentSettings.muni.length > 0 && <Muni stops={currentSettings.muni} />}

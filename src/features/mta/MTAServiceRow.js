@@ -84,7 +84,7 @@ const MTAServiceRow = ({ originStation, arrivalThreshold, rawData, alerts, desti
   const destinationStopId = nextTrip.stoppingAt[nextTrip.stoppingAt.length - 1];
 
   return (
-    <>
+    <section className="transit-row">
       <MTASubwayBullet route={nextTrip.route} size="lg"/>
       <RouteDescription destination={Stops[destinationStopId]} location={Stops[originStation]} />
       <RouteETA etas={etas} threshold={arrivalThreshold} />
@@ -93,8 +93,8 @@ const MTAServiceRow = ({ originStation, arrivalThreshold, rawData, alerts, desti
       {alerts.filter((a) => a.alert.informedEntity[0].routeId === nextTrip.route).map((a) => <AlertRow key={a.id} alert={a} />)}
       {alerts.filter((a) => a.alert.informedEntity[0].stopId === originStation).map((a) => <AlertRow key={a.id} alert={a} />)}
       {destinations.map(d => alerts.filter((a) => a.alert.informedEntity[0].stopId === d).map((a) => <AlertRow key={a.id} alert={a} />))}
-    </>
+    </section>
   )
 }
 
-export default MTAServiceRow; 
+export default MTAServiceRow;
